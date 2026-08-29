@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Green Elephant Intranet</title>
+<title>Green ellie</title>
 <style>
   :root{
     --ink:#1c1c1a;
@@ -493,6 +493,35 @@ function renderAdminUsers(){
     <div class="field"><label>Password</label><input id="nu-pass" type="password"></div>
     <div class="field"><label>Role</label><select id="nu-role"><option value="staff">Staff</option><option value="admin">Admin</option></select></div>
     <button class="btn btn-primary" id="add-user-btn">Create User</button>
+  </div>
+  
+  <div class="panel">
+    <h2>Existing Users</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${STATE.users.map(u => `
+          <tr>
+            <td>${u.name}</td>
+            <td>${u.username}</td>
+            <td>${u.role}</td>
+            <td>
+              ${u.id === STATE.currentUser.id 
+                ? '<span style="font-size:.75rem; color:#888;">(You)</span>' 
+                : `<button class="btn btn-ghost" data-del-user="${u.id}" style="padding:4px 8px; font-size:.75rem; color:var(--rust); border-color:var(--rust);">Delete</button>`
+              }
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
   </div>`;
 }
 
@@ -548,8 +577,8 @@ function bindShell(){
   }
   if(STATE.view==='admin-users'){
     $('#add-user-btn').addEventListener('click', ()=>{
-      const name = $('#nu-name').value;
-      const username = $('#nu-user').value.toLowerCase();
+      const name = $('#nu-name').value.trim();
+      const username = $('#nu-user').value.trim().toLowerCase();
       const password = $('#nu-pass').value;
       const role = $('#nu-role').value;
       if(name && username && password){
@@ -557,7 +586,21 @@ function bindShell(){
         saveData();
         alert('User added successfully');
         render();
+      } else {
+        alert('Please fill out all fields');
       }
+    });
+
+    // Delete user handler
+    document.querySelectorAll('[data-del-user]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const userId = btn.getAttribute('data-del-user');
+        if(confirm('Are you sure you want to delete this user?')){
+          STATE.users = STATE.users.filter(u => u.id !== userId);
+          saveData();
+          render();
+        }
+      });
     });
   }
 }
@@ -570,3 +613,4 @@ function bindShell(){
 </script>
 </body>
 </html>
+ 
