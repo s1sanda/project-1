@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Elephant Intranet</title>
+<style>
+  :root{
+    --ink:#1c1c1a;
+    --paper:#f3f1e7;
+    --paper-2:#eae5d4;
+    --forest:#16281f;
+    --teal:#2f5d50;
+    --brass:#c99a3a;
+    --rust:#a34a28;
+    --line: rgba(28,28,26,0.14);
+    --card: #fffdf6;
+    --radius: 14px;
+    --shadow: 0 8px 24px rgba(22,40,31,0.10);
+    font-size: 16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 100vh;
+  }
+  h1,h2,h3,h4{ font-family: Arial, Helvetica, sans-serif; font-weight: bold; margin:0 0 .3em 0; }
+  a{color:inherit;}
+  button{ font-family:inherit; cursor:pointer; }
+  input,select,textarea{ font-family:inherit; }
+
+  /* Auth */
+  .auth-wrap{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .auth-card{
+    background: var(--card); border:1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); max-width: 420px; width:100%; padding: 40px 34px 34px; position:relative;
+  }
+  .auth-brand{ display:flex; align-items:center; gap:12px; margin-bottom: 22px;}
+  .auth-brand .mark{ width:44px; height:44px; flex:none;}
+  .auth-brand .name{ font-family: Arial, Helvetica, sans-serif; font-size:1.25rem; font-weight:bold; color:var(--forest); line-height:1.15;}
+  .auth-brand .sub{ font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--teal); font-weight:600;}
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:.78rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--teal); margin-bottom:6px;}
+  .field input, .field select, .field textarea{
+    width:100%; padding:11px 12px; border-radius:9px; border:1.5px solid var(--line);
+    background: var(--paper); font-size:.95rem; color: var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:2px solid var(--brass); border-color: var(--brass);}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding: 11px 20px; border-radius: 9px; border:none; font-weight:600; font-size:.92rem;
+  }
+  .btn-primary{ background: var(--forest); color: var(--paper); width:100%; }
+  .btn-primary:hover{ background:#0f1c15; }
+  .btn-ghost{ background: transparent; border:1.5px solid var(--line); color: var(--ink); }
+  .btn-ghost:hover{ border-color: var(--forest); }
+  .err{ color: var(--rust); font-size:.85rem; margin: 4px 0 14px; font-weight:600;}
+
+  /* Shell */
+  .shell{ display:flex; min-height:100vh; }
+  .sidebar{
+    width: 230px; flex:none; background: var(--forest); color: var(--paper);
+    padding: 22px 16px; display:flex; flex-direction:column; gap:4px;
+  }
+  .sidebar .brand{ display:flex; align-items:center; gap:10px; padding: 4px 8px 22px; }
+  .sidebar .brand .mark{ width:32px; height:32px; }
+  .sidebar .brand .name{ font-family: Arial, Helvetica, sans-serif; font-weight:bold; font-size:1.02rem; line-height:1.1;}
+  .navbtn{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px;
+    background:transparent; border:none; color: rgba(243,241,231,0.78); font-size:.9rem; font-weight:500;
+    text-align:left; width:100%;
+  }
+  .navbtn:hover{ background: rgba(243,241,231,0.08); color:#fff; }
+  .navbtn.active{ background: var(--teal); color:#fff; }
+  .sidebar .spacer{ flex:1; }
+  .sidebar .who{ padding: 10px 12px; border-top:1px solid rgba(243,241,231,0.14); margin-top:8px; }
+  .sidebar .who .n{ font-weight:600; font-size:.88rem; }
+  .sidebar .who .r{ font-size:.72rem; color: var(--brass); text-transform:uppercase; letter-spacing:.06em; font-weight:700;}
+  .sidebar .logout{ margin-top:8px; font-size:.8rem; color: rgba(243,241,231,0.6); background:none; border:none; text-align:left; padding:6px 12px; text-decoration:underline;}
+
+  .main{ flex:1; padding: 34px 40px; max-width: 1080px; }
+  .topline{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom: 26px; flex-wrap:wrap; gap:10px;}
+  .eyebrow{ font-size:.74rem; letter-spacing:.1em; text-transform:uppercase; color:var(--teal); font-weight:700; margin-bottom:4px;}
+
+  .keytag{
+    position:relative; background: var(--card); border:1px solid var(--line); border-radius: 12px;
+    padding: 20px 20px 18px 44px; box-shadow: var(--shadow); cursor:pointer;
+  }
+  .keytag::before{
+    content:""; position:absolute; left:16px; top:50%; transform:translateY(-50%);
+    width:16px; height:16px; border-radius:50%; background: var(--paper); border: 3px solid var(--brass);
+  }
+  .keytag .cat{ font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--teal); font-weight:700; margin-bottom:5px;}
+  .keytag h3{ font-size:1.02rem; margin-bottom:6px; color:var(--forest); }
+  .keytag p{ margin:0; font-size:.85rem; color:#55544b; line-height:1.5; }
+  .keytag .done{ position:absolute; top:14px; right:14px; font-size:.68rem; background: var(--teal); color:#fff; padding:2px 8px; border-radius:20px; font-weight:700; }
+
+  .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap:16px; margin-bottom: 30px; }
+  .panel{ background: var(--card); border:1px solid var(--line); border-radius: var(--radius); padding:26px 28px; box-shadow: var(--shadow); margin-bottom:22px;}
+  .panel h2{ color:var(--forest); font-size:1.3rem;}
+
+  .progress-wrap{ background: var(--paper-2); border-radius: 10px; height:10px; overflow:hidden; margin:10px 0 4px;}
+  .progress-bar{ height:100%; background: linear-gradient(90deg, var(--teal), var(--brass)); border-radius:10px; }
+
+  .onboard-strip{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+  .chip{ background: var(--paper-2); border:1px solid var(--line); border-radius:20px; padding:8px 14px; font-size:.84rem; font-weight:600; color:var(--forest);}
+  .chip.done{ background: var(--teal); color:#fff; border-color:var(--teal); }
+
+  .module-body{ white-space: pre-wrap; line-height:1.7; font-size:.95rem; color:#2a2a26;}
+  .backbtn{ background:none; border:none; color:var(--teal); font-weight:600; margin-bottom:16px; padding:0; font-size:.88rem;}
+
+  table{ width:100%; border-collapse:collapse; font-size:.88rem; }
+  th{ text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--teal); padding:8px 10px; border-bottom:2px solid var(--line);}
+  td{ padding:10px 10px; border-bottom:1px solid var(--line); vertical-align:middle;}
+
+  .tabs{ display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+  .tab{ padding:9px 16px; border-radius:9px; border:1.5px solid var(--line); background:var(--card); font-weight:600; font-size:.86rem; color:#55544b; cursor:pointer;}
+  .tab.active{ background:var(--forest); color:#fff; border-color:var(--forest); }
+
+  /* Semper Simulator Component */
+  .semper-frame{ border:2px solid var(--teal); border-radius:10px; overflow:hidden; margin:16px 0; }
+  .semper-topbar{ background: var(--teal); color:#fff; padding:10px 16px; font-size:.85rem; font-weight:700; letter-spacing:.03em; display:flex; justify-content:space-between; align-items:center;}
+  .semper-body{ background:#fbfaf4; padding:24px; }
+  .vcc-card{ background: linear-gradient(135deg,#1a2f24,#2f5d50); color:#fff; border-radius:14px; padding:20px; font-family:'Courier New', Courier, monospace; max-width:340px; margin:14px 0;}
+  .vcc-card .num{ font-size:1.15rem; letter-spacing:.12em; margin:10px 0; }
+  .vcc-card .lbl{ font-size:.62rem; text-transform:uppercase; letter-spacing:.08em; opacity:.7; }
+  .msg-ok{ background:#e5f0ea; border:1px solid var(--teal); color:var(--forest); padding:12px 16px; border-radius:8px; font-size:.88rem; font-weight:600; margin-top:14px;}
+
+  @media (max-width: 800px){
+    .shell{ flex-direction:column; }
+    .sidebar{ width:100%; flex-direction:row; overflow-x:auto; align-items:center; padding:12px; }
+    .sidebar .brand{ padding:4px 10px; }
+    .sidebar .spacer, .sidebar .who, .sidebar .logout{ display:none; }
+    .navbtn{ width:auto; white-space:nowrap; }
+    .main{ padding: 22px 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+function defaultModules(){
+  return [
+    {id:'m25', cat:'Guest Communication', title:'Guest-First Mindset & Service Principles', order:0, body:
+`Our approach is guest-first. We aim to anticipate needs and resolve issues early to protect and enhance the guest experience.
+
+• Guest-first — put the guest at the centre of every decision.
+• Proactive care — anticipate needs and address risks before they affect the stay.
+• Experience over transactions — every touchpoint should feel clear, kind and useful.
+• Safety, cleanliness, consistency — "Safe. Affordable. Clean." — every day, every guest.
+• Close the loop — confirm actions taken and outcomes with the guest.`},
+
+    {id:'m1', cat:'Shift Routine', title:'Start of Shift', order:1, body:
+`Clock In
+• Sign in on the attendance register or system.
+• Check that plants are watered.
+• Switch on pleasant, welcoming music (no gangster music).
+
+Check Communications
+• Read handover notes from the previous shift.
+• Check WhatsApp / internal channels for updates and acknowledge messages.
+• Proactive guest care: scan for guest risks (late arrivals, special needs, payment issues) and prepare solutions.
+
+Review Arrivals & Departures
+• Open Semper and review the day's arrivals, check-ins and check-outs.
+• WhatsApp check-outs to the housekeeping group.
+• Confirm room availability and any special guest requests.`},
+
+    {id:'m3', cat:'Payments & Cash', title:'Cash-Up Process', order:3, body:
+`1. Double-check that all checked-in reservations are marked In-House on Semper.
+2. Confirm payments are closed on all in-house reservations.
+3. Write correct folio numbers on receipts and in the transaction book.
+4. In the transaction book, write the total cash amount made at the bar.
+5. Calculate all transactions and write the total cash-up balance in the transaction book.
+6. Ensure cash in the cash box balances with the transaction book.
+7. Semper → Front Desk → Cash Up → select your name → Cash Up.
+8. If prompted and all is correct, choose 'Yes'. A spreadsheet downloads automatically.
+9. Open and print the cash-up document. Staple all receipts (bar and reservations). File in the cash-up file.`},
+
+    {id:'m4', cat:'Guest Arrivals', title:'Walk-In Front Office Process', order:4, body:
+`• Open Calendar View → double-click the guest's check-in date.
+• Ask: "How many nights will you be staying?" → enter nights.
+• Ask: "How many adults?" → enter adults.
+
+Add Guest in Semper
+• Click Add New next to GUESTS → double-click to open the guest form.
+• Enter the guest's name → click Search to check for existing records.
+
+Process Payment
+• Go to Transactions → click guest's name → click Payments.
+• Choose Cash or Credit Card (Speed Point).
+• Click Save → confirm the Balance is R0.`}
+  ];
+}
+
+const ONBOARD_IDS = ['m25','m1','m4','m3'];
+
+let STATE = {
+  screen: 'loading',
+  currentUser: null,
+  view: 'dashboard',
+  activeModuleId: null,
+  semperTab: 'walkin',
+  simData: {
+    walkinStep: 1,
+    guestName: '',
+    nights: 1,
+    paymentMethod: 'Credit Card',
+    cashBox: '',
+    vccCharged: false
+  },
+  users: [],
+  modules: [],
+  progress: {},
+};
+
+const $ = sel => document.querySelector(sel);
+const app = () => $('#app');
+function uid(p){ return p + Math.random().toString(36).slice(2,9); }
+
+function loadData(){
+  const localUsers = localStorage.getItem('ge_users');
+  STATE.users = localUsers ? JSON.parse(localUsers) : [];
+  
+  const localMods = localStorage.getItem('ge_modules');
+  STATE.modules = localMods ? JSON.parse(localMods) : defaultModules();
+  if(!localMods) localStorage.setItem('ge_modules', JSON.stringify(STATE.modules));
+}
+
+function saveData(){
+  localStorage.setItem('ge_users', JSON.stringify(STATE.users));
+  localStorage.setItem('ge_modules', JSON.stringify(STATE.modules));
+}
+
+function loadProgress(user){
+  const p = localStorage.getItem('ge_prog_' + user);
+  STATE.progress = p ? JSON.parse(p) : {};
+}
+
+function saveProgress(){
+  if(STATE.currentUser){
+    localStorage.setItem('ge_prog_' + STATE.currentUser.username, JSON.stringify(STATE.progress));
+  }
+}
+
+function elephantMark(size){
+  return `<svg class="mark" width="${size}" height="${size}" viewBox="0 0 48 48" fill="none">
+    <circle cx="24" cy="24" r="23" fill="#16281f"/>
+    <path d="M14 30c0-7 4-12 10-12s9 4 9 9c0 3-2 5-4 5h-2v5h-3v-5h-3c-1 3-3 5-6 5-2 0-3-1-3-3 0-2 1-3 2-4z" fill="#f3f1e7"/>
+    <circle cx="27" cy="21" r="1.4" fill="#16281f"/>
+  </svg>`;
+}
+
+function render(){
+  if(STATE.screen === 'bootstrap'){ app().innerHTML = renderBootstrap(); bindBootstrap(); return; }
+  if(STATE.screen === 'login'){ app().innerHTML = renderLogin(); bindLogin(); return; }
+  app().innerHTML = renderShell(); bindShell();
+}
+
+function renderBootstrap(){
+  return `<div class="auth-wrap"><div class="auth-card">
+    <div class="auth-brand">${elephantMark(44)}<div><div class="name">Green Elephant</div><div class="sub">Intranet Setup</div></div></div>
+    <h2>Create Admin Account</h2>
+    <p style="font-size:.85rem;color:#6b6a5f;">No accounts exist yet. Create the primary admin account to get started.</p>
+    <div id="boot-err" class="err" style="display:none;"></div>
+    <div class="field"><label>Full Name</label><input id="b-name" type="text" placeholder="Manager Name"></div>
+    <div class="field"><label>Username</label><input id="b-user" type="text" placeholder="admin"></div>
+    <div class="field"><label>Password</label><input id="b-pass" type="password" placeholder="Password"></div>
+    <button class="btn btn-primary" id="b-submit">Create Admin Account</button>
+  </div></div>`;
+}
+
+function bindBootstrap(){
+  $('#b-submit').addEventListener('click', ()=>{
+    const name = $('#b-name').value.trim();
+    const username = $('#b-user').value.trim().toLowerCase();
+    const pass = $('#b-pass').value;
+    if(!name || !username || !pass){ $('#boot-err').textContent='Please fill all fields.'; $('#boot-err').style.display='block'; return; }
+    STATE.users.push({ id: uid('u'), name, username, password: pass, role:'admin' });
+    saveData(); STATE.screen = 'login'; render();
+  });
+}
+
+function renderLogin(){
+  return `<div class="auth-wrap"><div class="auth-card">
+    <div class="auth-brand">${elephantMark(44)}<div><div class="name">Green Elephant</div><div class="sub">Staff Intranet</div></div></div>
+    <h2>Log In</h2>
+    ${STATE.error ? `<div class="err">${STATE.error}</div>` : ''}
+    <div class="field"><label>Username</label><input id="l-user" type="text"></div>
+    <div class="field"><label>Password</label><input id="l-pass" type="password"></div>
+    <button class="btn btn-primary" id="l-submit">Log In</button>
+  </div></div>`;
+}
+
+function bindLogin(){
+  $('#l-submit').addEventListener('click', ()=>{
+    const u = $('#l-user').value.trim().toLowerCase();
+    const p = $('#l-pass').value;
+    const user = STATE.users.find(x => x.username === u && x.password === p);
+    if(!user){ STATE.error = 'Invalid credentials'; render(); return; }
+    STATE.currentUser = user; STATE.screen = 'app'; STATE.view='dashboard'; STATE.error='';
+    loadProgress(user.username); render();
+  });
+}
+
+function isAdmin(){ return STATE.currentUser && STATE.currentUser.role === 'admin'; }
+
+function renderShell(){
+  const u = STATE.currentUser;
+  const navItems = [
+    {v:'dashboard', label:'Dashboard', ic:'⌂'},
+    {v:'manual', label:'Staff Manual', ic:'▤'},
+    {v:'semper', label:'Semper Practice', ic:'⌨'},
+  ];
+  if(isAdmin()){
+    navItems.push({v:'admin-users', label:'Manage Users', ic:'☺'});
+  }
+  return `<div class="shell">
+    <div class="sidebar">
+      <div class="brand">${elephantMark(32)}<div class="name">Green Elephant</div></div>
+      ${navItems.map(n=>`<button class="navbtn ${STATE.view===n.v?'active':''}" data-nav="${n.v}"><span class="ic">${n.ic}</span> ${n.label}</button>`).join('')}
+      <div class="spacer"></div>
+      <div class="who"><div class="n">${u.name}</div><div class="r">${u.role}</div></div>
+      <button class="logout" id="logout-btn">Log out</button>
+    </div>
+    <div class="main">${renderView()}</div>
+  </div>`;
+}
+
+function renderView(){
+  if(STATE.view === 'dashboard') return renderDashboard();
+  if(STATE.view === 'manual') return renderManual();
+  if(STATE.view === 'module') return renderModule();
+  if(STATE.view === 'semper') return renderSemper();
+  if(STATE.view === 'admin-users') return renderAdminUsers();
+  return '';
+}
+
+function renderDashboard(){
+  const total = STATE.modules.length;
+  const readCount = Object.keys(STATE.progress).filter(k=>STATE.progress[k]).length;
+  const pct = total ? Math.round((readCount/total)*100) : 0;
+  return `
+    <div class="topline"><div><div class="eyebrow">Welcome to</div><h1>Green Elephant Backpackers</h1></div></div>
+    <div class="panel">
+      <h2>Hello, ${STATE.currentUser.name}</h2>
+      <p style="color:#55544b;">Welcome to the Green Elephant internal training and operations system.</p>
+      <div style="margin-top:18px;">
+        <div style="display:flex;justify-content:space-between;font-size:.82rem;color:var(--teal);font-weight:700;">
+          <span>PROGRESS</span><span>${readCount} / ${total} sections read</span>
+        </div>
+        <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>New Employee Onboarding Path</h2>
+      <div class="onboard-strip">
+        ${ONBOARD_IDS.map(id=>{
+          const m = STATE.modules.find(x=>x.id===id);
+          if(!m) return '';
+          const done = !!STATE.progress[id];
+          return `<button class="chip ${done?'done':''}" data-open-module="${id}">${done?'✓ ':''}${m.title}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function renderManual(){
+  return `<div class="topline"><div><div class="eyebrow">Reference</div><h1>Staff Manual</h1></div></div>
+  <div class="grid">${STATE.modules.map(m=>`
+    <div class="keytag" data-open-module="${m.id}">
+      ${STATE.progress[m.id] ? '<div class="done">READ</div>' : ''}
+      <div class="cat">${m.cat}</div>
+      <h3>${m.title}</h3>
+      <p>${m.body.slice(0,80)}…</p>
+    </div>`).join('')}</div>`;
+}
+
+function renderModule(){
+  const m = STATE.modules.find(x=>x.id===STATE.activeModuleId);
+  if(!m) return `<div>Module not found</div>`;
+  const done = !!STATE.progress[m.id];
+  return `
+    <button class="backbtn" id="back-to-manual">← Back to Staff Manual</button>
+    <div class="panel">
+      <div class="eyebrow">${m.cat}</div>
+      <h1>${m.title}</h1>
+      <div class="module-body">${m.body}</div>
+      <button class="btn ${done?'btn-ghost':'btn-primary'}" id="mark-read" style="margin-top:20px;">
+        ${done ? '✓ Marked as Read' : 'Mark as Read'}
+      </button>
+    </div>`;
+}
+
+/* INTERACTIVE SEMPER SIMULATOR */
+function renderSemper(){
+  const tab = STATE.semperTab;
+  return `
+    <div class="topline"><div><div class="eyebrow">Interactive Training</div><h1>Semper Practice Sandbox</h1></div></div>
+    <div class="tabs">
+      <button class="tab ${tab==='walkin'?'active':''}" data-stab="walkin">Walk-In Booking</button>
+      <button class="tab ${tab==='cashup'?'active':''}" data-stab="cashup">Cash-Up Simulator</button>
+      <button class="tab ${tab==='vcc'?'active':''}" data-stab="vcc">Virtual Credit Card (VCC)</button>
+    </div>
+    
+    <div class="semper-frame">
+      <div class="semper-topbar">
+        <span>SEMPER PMS SIMULATOR — [TRAINING MODE]</span>
+        <span style="font-size:.75rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px;">Sandboxed</span>
+      </div>
+      <div class="semper-body">
+        ${tab === 'walkin' ? renderWalkInSim() : ''}
+        ${tab === 'cashup' ? renderCashUpSim() : ''}
+        ${tab === 'vcc' ? renderVccSim() : ''}
+      </div>
+    </div>`;
+}
+
+function renderWalkInSim(){
+  const step = STATE.simData.walkinStep;
+  if(step === 1){
+    return `
+      <h3>Step 1: Reservation Details</h3>
+      <p style="font-size:.88rem; color:#555;">Enter guest stay duration to check room availability.</p>
+      <div class="field"><label>Guest Name</label><input id="sim-gname" value="${STATE.simData.guestName}" placeholder="e.g. John Doe"></div>
+      <div class="field"><label>Nights Staying</label><input id="sim-nights" type="number" min="1" value="${STATE.simData.nights}"></div>
+      <button class="btn btn-primary" id="sim-step1-next">Continue to Payment →</button>`;
+  }
+  if(step === 2){
+    const rate = 350;
+    const total = STATE.simData.nights * rate;
+    return `
+      <h3>Step 2: Processing Payment</h3>
+      <p style="font-size:.88rem; color:#555;">Guest: <strong>${STATE.simData.guestName}</strong> (${STATE.simData.nights} night(s))</p>
+      <p style="font-size:1.1rem; font-weight:bold; color:var(--forest);">Total Due: R${total}</p>
+      <div class="field"><label>Payment Method</label>
+        <select id="sim-paymethod">
+          <option value="Credit Card">Credit Card (SpeedPoint)</option>
+          <option value="Cash">Cash</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="sim-step2-pay">Process Payment (R${total})</button>
+      <button class="btn btn-ghost" id="sim-step2-back" style="margin-left:8px;">Back</button>`;
+  }
+  return `
+    <div class="msg-ok">
+      ✔ Booking Complete! Reservation for ${STATE.simData.guestName} is marked <strong>In-House</strong> with a balance of <strong>R0</strong>.
+    </div>
+    <button class="btn btn-ghost" id="sim-reset" style="margin-top:16px;">Practice Another Walk-In</button>`;
+}
+
+function renderCashUpSim(){
+  return `
+    <h3>Cash-Up Balancing Tool</h3>
+    <p style="font-size:.88rem; color:#555;">Enter physical cash box balance to match with system records.</p>
+    <div style="background:#eae5d4; padding:12px; border-radius:8px; margin-bottom:16px; font-size:.88rem;">
+      <strong>Expected System Balance:</strong> R 1,450.00 (Bar: R450 | Front Desk: R1,000)
+    </div>
+    <div class="field"><label>Physical Cash Counted (R)</label><input id="sim-cashcount" type="number" placeholder="1450"></div>
+    <button class="btn btn-primary" id="sim-cash-check">Perform Cash-Up</button>
+    <div id="sim-cash-result"></div>`;
+}
+
+function renderVccSim(){
+  return `
+    <h3>Booking.com Virtual Credit Card Charging</h3>
+    <p style="font-size:.88rem; color:#555;">Practice charging virtual cards manually on the SpeedPoint machine.</p>
+    <div class="vcc-card">
+      <div class="lbl">Virtual Visa Card</div>
+      <div class="num">4532 •••• •••• 8821</div>
+      <div style="display:flex; justify-content:space-between;">
+        <div><div class="lbl">EXP</div><div>09/28</div></div>
+        <div><div class="lbl">CVV</div><div>311</div></div>
+        <div><div class="lbl">LIMIT</div><div>R 850.00</div></div>
+      </div>
+    </div>
+    ${STATE.simData.vccCharged ? 
+      `<div class="msg-ok">✔ SpeedPoint Purchase Successful (R850.00). System Updated to Paid.</div><button class="btn btn-ghost" id="sim-vcc-reset" style="margin-top:12px;">Reset VCC Demo</button>` :
+      `<button class="btn btn-primary" id="sim-vcc-charge">Charge R850 on SpeedPoint</button>`
+    }`;
+}
+
+function renderAdminUsers(){
+  return `<div class="topline"><h1>Manage Users</h1></div>
+  <div class="panel">
+    <h2>Add New User</h2>
+    <div class="field"><label>Name</label><input id="nu-name"></div>
+    <div class="field"><label>Username</label><input id="nu-user"></div>
+    <div class="field"><label>Password</label><input id="nu-pass" type="password"></div>
+    <div class="field"><label>Role</label><select id="nu-role"><option value="staff">Staff</option><option value="admin">Admin</option></select></div>
+    <button class="btn btn-primary" id="add-user-btn">Create User</button>
+  </div>`;
+}
+
+function bindShell(){
+  document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click', ()=>{ STATE.view = b.getAttribute('data-nav'); render(); }));
+  const lo = $('#logout-btn'); if(lo) lo.addEventListener('click', ()=>{ STATE.currentUser=null; STATE.screen='login'; render(); });
+
+  if(STATE.view==='dashboard' || STATE.view==='manual'){
+    document.querySelectorAll('[data-open-module]').forEach(el=>el.addEventListener('click', ()=>{ STATE.activeModuleId = el.getAttribute('data-open-module'); STATE.view = 'module'; render(); }));
+  }
+  if(STATE.view==='module'){
+    $('#back-to-manual').addEventListener('click', ()=>{ STATE.view='manual'; render(); });
+    $('#mark-read').addEventListener('click', ()=>{ STATE.progress[STATE.activeModuleId] = true; saveProgress(); render(); });
+  }
+  if(STATE.view==='semper'){
+    document.querySelectorAll('[data-stab]').forEach(b=>b.addEventListener('click', ()=>{ STATE.semperTab = b.getAttribute('data-stab'); render(); }));
+    
+    // Walk-in steps
+    const s1 = $('#sim-step1-next');
+    if(s1) s1.addEventListener('click', ()=>{
+      const name = $('#sim-gname').value.trim();
+      const n = parseInt($('#sim-nights').value) || 1;
+      if(!name){ alert('Please enter a guest name'); return; }
+      STATE.simData.guestName = name;
+      STATE.simData.nights = n;
+      STATE.simData.walkinStep = 2;
+      render();
+    });
+    const s2p = $('#sim-step2-pay');
+    if(s2p) s2p.addEventListener('click', ()=>{ STATE.simData.walkinStep = 3; render(); });
+    const s2b = $('#sim-step2-back');
+    if(s2b) s2b.addEventListener('click', ()=>{ STATE.simData.walkinStep = 1; render(); });
+    const sr = $('#sim-reset');
+    if(sr) sr.addEventListener('click', ()=>{ STATE.simData.walkinStep = 1; STATE.simData.guestName = ''; render(); });
+
+    // Cash-up step
+    const cc = $('#sim-cash-check');
+    if(cc) cc.addEventListener('click', ()=>{
+      const val = parseFloat($('#sim-cashcount').value);
+      const res = $('#sim-cash-result');
+      if(val === 1450){
+        res.innerHTML = `<div class="msg-ok">✔ Cash Balanced! Drawer matches system records (R1,450.00).</div>`;
+      } else {
+        res.innerHTML = `<div class="err" style="margin-top:12px;">✖ Discrepancy detected! Expected R1,450.00, but entered R${val || 0}. Check receipts and re-count drawer.</div>`;
+      }
+    });
+
+    // VCC step
+    const vcc = $('#sim-vcc-charge');
+    if(vcc) vcc.addEventListener('click', ()=>{ STATE.simData.vccCharged = true; render(); });
+    const vccr = $('#sim-vcc-reset');
+    if(vccr) vccr.addEventListener('click', ()=>{ STATE.simData.vccCharged = false; render(); });
+  }
+  if(STATE.view==='admin-users'){
+    $('#add-user-btn').addEventListener('click', ()=>{
+      const name = $('#nu-name').value;
+      const username = $('#nu-user').value.toLowerCase();
+      const password = $('#nu-pass').value;
+      const role = $('#nu-role').value;
+      if(name && username && password){
+        STATE.users.push({ id: uid('u'), name, username, password, role });
+        saveData();
+        alert('User added successfully');
+        render();
+      }
+    });
+  }
+}
+
+(function init(){
+  loadData();
+  STATE.screen = STATE.users.length === 0 ? 'bootstrap' : 'login';
+  render();
+})();
+</script>
+</body>
+</html>
